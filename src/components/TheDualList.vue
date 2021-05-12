@@ -3,31 +3,29 @@
         <!--원본영역-->
         <div>
             <!--타이틀-->
-            <v-row no-gutters class="mb-1" align="center">
+            <v-row no-gutters style="margin-bottom: 4px;" align="center">
                 <slot name="left-title"></slot>
             </v-row>
             <!--\\타이틀-->
             <!--검색영역-->
-            <v-row no-gutters class="mb-1" align="center">
-                <v-col cols="12" lg="10">
-                    <v-text-field
-                        ref="leftSearch"
-                        hide-details
-                        outlined
-                        dense
-                        clearable
-                        :placeholder="searchPlaceholder"
-                        @click:clear="sourceSearch( { clear: true } )"
-                        @keyup.enter="sourceSearch"
-                    >
-                    </v-text-field>
-                </v-col>
-                <v-spacer></v-spacer>
+            <v-row no-gutters style="margin-bottom: 4px;" align="center">
+                <v-text-field
+                    ref="leftSearch"
+                    style="margin-right: 4px;"
+                    hide-details
+                    outlined
+                    dense
+                    clearable
+                    :placeholder="searchPlaceholder"
+                    @click:clear="leftSearchEvent( { clear: true } )"
+                    @keyup.enter="leftSearchEvent"
+                >
+                </v-text-field>
                 <v-btn
                     color="normal"
-                    @click="sourceSearch"
+                    @click="leftSearchEvent"
                 >
-                    {{ $t( "views.common-form.btn.search" ) }}
+                    {{ "search" }}
                 </v-btn>
             </v-row>
             <!--\\검색영역-->
@@ -51,16 +49,16 @@
                 <vue-scroll :ops="ops">
                     <draggable
                         :disabled="dragDisabled"
-                        :list="source"
+                        :list="leftItems"
                     >
                         <!--@change="changeLog"-->
                         <li
                             class="list-item"
-                            v-for="(item,key) in source"
+                            v-for="(item,key) in leftItems"
                             :key="key"
                             :style="{backgroundColor: item.selected ? '#eeeeee':''}"
                             v-show="!item.hide"
-                            @click="selectSource(key)"
+                            @click="selectItemsOfLeft(key)"
                         >
                             <slot
                                 name="list-item"
@@ -73,7 +71,6 @@
                                         :key="i"
                                         :cols="12/headers.length"
                                     >
-
                                         {{ item[x.value] }}
                                     </v-col>
                                 </v-row>
@@ -81,7 +78,7 @@
                         </li>
                         <li
                             class="list-item"
-                            v-show="source.length < 1"
+                            v-show="leftItems.length < 1"
                         >
                             <v-row no-gutters>
                                 <v-col cols="12" style="text-align: center;">
@@ -94,7 +91,7 @@
             </ul>
             <v-row no-gutters>
                 <v-spacer></v-spacer>
-                <v-col cols="1">{{ sourceSelectCnt + "/" + sourceAllCnt }}</v-col>
+                <v-col cols="1">{{ leftItemsSelectCnt + "/" + leftItemsAllCnt }}</v-col>
             </v-row>
             <!--\\데이터영역-->
             <div class="bulk-action">
@@ -102,16 +99,16 @@
                 <v-btn
                     class="select-all white--text"
                     color="grey darken-3"
-                    @click="selectAllSource"
+                    @click="selectAllOfLeft"
                 >
-                    {{ $t( "views.common-form.btn.selectAll" ) }}
+                    {{ "select all" }}
                 </v-btn>
                 <v-btn
                     class="deselect-all"
                     color="normal"
-                    @click="deSelectAllSource"
+                    @click="unselectAllOfLeft"
                 >
-                    {{ $t( "views.common-form.btn.none" ) }}
+                    {{ "unselect all" }}
                 </v-btn>
                 <v-spacer></v-spacer>
             </div>
@@ -120,30 +117,34 @@
         <!--버튼영역-->
         <div class="actions">
             <v-btn
+                icon
                 class="btn-action"
                 color="normal"
-                @click="moveDestination"
+                @click="moveRight"
             >
                 <v-icon>mdi-chevron-right</v-icon>
             </v-btn>
             <v-btn
+                icon
                 class="btn-action"
                 color="normal"
-                @click="moveAllDestination"
+                @click="moveAllRight"
             >
                 <v-icon>mdi-chevron-double-right</v-icon>
             </v-btn>
             <v-btn
+                icon
                 class="btn-action"
                 color="normal"
-                @click="moveSource"
+                @click="moveLeft"
             >
                 <v-icon>mdi-chevron-left</v-icon>
             </v-btn>
             <v-btn
+                icon
                 class="btn-action"
                 color="normal"
-                @click="moveAllSource"
+                @click="moveAllLeft"
             >
                 <v-icon>mdi-chevron-double-left</v-icon>
             </v-btn>
@@ -152,31 +153,29 @@
         <!--선택영역-->
         <div>
             <!--타이틀-->
-            <v-row no-gutters class="mb-1" align="center">
+            <v-row no-gutters style="margin-bottom: 4px;" align="center">
                 <slot name="right-title"></slot>
             </v-row>
             <!--\\타이틀-->
             <!--검색영역-->
-            <v-row no-gutters class="mb-1" align="center">
-                <v-col cols="12" lg="10">
-                    <v-text-field
-                        ref="rightSearch"
-                        hide-details
-                        outlined
-                        dense
-                        clearable
-                        :placeholder="searchPlaceholder"
-                        @click:clear="destinationSearch( { clear: true } )"
-                        @keyup.enter="destinationSearch"
-                    >
-                    </v-text-field>
-                </v-col>
-                <v-spacer></v-spacer>
+            <v-row no-gutters style="margin-bottom: 4px;" align="center">
+                <v-text-field
+                    ref="rightSearch"
+                    style="margin-right: 4px;"
+                    hide-details
+                    outlined
+                    dense
+                    clearable
+                    :placeholder="searchPlaceholder"
+                    @click:clear="rightSearchEvent( { clear: true } )"
+                    @keyup.enter="rightSearchEvent"
+                >
+                </v-text-field>
                 <v-btn
                     color="normal"
-                    @click="destinationSearch"
+                    @click="rightSearchEvent"
                 >
-                    {{ $t( "views.common-form.btn.search" ) }}
+                    {{ "search" }}
                 </v-btn>
             </v-row>
             <!--\\검색영역-->
@@ -200,11 +199,11 @@
                 <vue-scroll :ops="ops">
                     <li
                         class="list-item"
-                        v-for="(item,key) in destination"
+                        v-for="(item,key) in rightItems"
                         :key="key"
                         :style="{ backgroundColor: item.selected ? '#f5f5f5':'' }"
                         v-show="!item.hide"
-                        @click="selectDestination(key)"
+                        @click="selectItemsOfRight(key)"
                     >
                         <slot
                             name="list-item"
@@ -224,7 +223,7 @@
                     </li>
                     <li
                         class="list-item"
-                        v-show="destination.length < 1"
+                        v-show="rightItems.length < 1"
                     >
                         <v-row no-gutters>
                             <v-col cols="12" style="text-align: center;">
@@ -236,7 +235,7 @@
             </ul>
             <v-row no-gutters>
                 <v-spacer></v-spacer>
-                <v-col cols="1">{{ destinationSelectCnt + "/" + destinationAllCnt }}</v-col>
+                <v-col cols="1">{{ rightItemsSelectCnt + "/" + rightItemsAllCnt }}</v-col>
             </v-row>
             <!--\\데이터영역-->
             <div class="bulk-action">
@@ -244,16 +243,16 @@
                 <v-btn
                     class="select-all white--text"
                     color="grey darken-3"
-                    @click="selectAllDestination"
+                    @click="selectAllOfRight"
                 >
-                    {{ $t( "views.common-form.btn.selectAll" ) }}
+                    {{ "select all" }}
                 </v-btn>
                 <v-btn
                     class="deselect-all"
                     color="normal"
-                    @click="deSelectAllDestination"
+                    @click="unselectAllOfRight"
                 >
-                    {{ $t( "views.common-form.btn.none" ) }}
+                    {{ "unselect all" }}
                 </v-btn>
                 <v-spacer></v-spacer>
             </div>
@@ -263,8 +262,221 @@
 </template>
 
 <script>
+import vueScroll from 'vuescroll';
+import draggable from 'vuedraggable';
+import TheSpinner from "./TheSpinner";
+import TableComponent from "./table-component";
+
+/**
+ * dual list component
+ * @version 1.0
+ */
 export default {
-    name: "TheDualList"
+    name      : "TheDualList",
+    components: { TheSpinner, vueScroll, draggable },
+    mixins    : [ TableComponent ],
+    props     : {
+        leftItems        : Array,
+        rightItems       : Array,
+        searchPlaceholder: String,
+        /** table header (left == right) */
+        headers: {
+            type    : Array,
+            required: true
+        },
+        /**
+         * Header key to include in search function
+         * @type [String Array]
+         */
+        searchHeader: Array,
+        dragDisabled: {
+            type   : Boolean,
+            default: false
+        },
+        loading     : {
+            type   : Boolean,
+            default: false
+        },
+        height      : {
+            type    : String,
+            required: false
+        },
+        /** Text shown when no items are provided to the component */
+        noDataText: String
+    },
+    data() {
+        return {
+            ops      : {
+                vuescroll  : {},
+                scrollPanel: {},
+                rail       : {},
+                bar        : {}
+            },
+            leftList : null,
+            rightList: null,
+        }
+    },
+    computed: {
+        // Data area length
+        listBoxHeight() {
+            return this.height ?
+                this.leftItems.length > 0 || this.rightItems.length > 0 ?
+                    { height: this.height } : { height: "30px" }
+                : null;
+        },
+        noDataTextLabel() {
+            return this.noDataText ? this.noDataText : "No data"
+        },
+        // Total number of data in the source area
+        leftItemsAllCnt() {
+            return this.leftList ? this.leftList.filter( item => !item.hide ).length : 0;
+        },
+        // 원본 영역 선택 데이터 개수
+        leftItemsSelectCnt() {
+            return this.leftList ? this.leftList.filter( item => item.selected ).length : 0;
+        },
+        // 선택 영역 전체 데이터 개수
+        rightItemsAllCnt() {
+            return this.rightList ? this.rightList.filter( item => !item.hide ).length : 0;
+        },
+        // 선택 영역 선택 데이터 개수
+        rightItemsSelectCnt() {
+            return this.rightList ? this.rightList.filter( item => item.selected ).length : 0;
+        },
+    },
+    watch   : {
+        leftItems( to ) {
+            this.leftList = to;
+        },
+        rightItems( to ) {
+            this.rightList = to;
+        }
+    },
+    methods : {
+        moveRight() {
+            const selected = this.leftList.filter( f => f.selected ).map( item => ( { ...item, selected: false } ) );
+            const rightItems = [ ...this.rightList, ...selected ];
+            const leftItems = this.leftList.filter( f => !f.selected );
+
+            this.leftList = leftItems;
+            this.rightList = rightItems;
+
+            this.$emit( "onChange", { leftItems, rightItems } );
+        },
+        moveLeft() {
+            const selected = this.rightList.filter( f => f.selected ).map( item => ( { ...item, selected: false } ) );
+            const leftItems = [ ...this.leftList, ...selected ];
+            const rightItems = this.rightList.filter( f => !f.selected );
+
+            this.leftList = leftItems;
+            this.rightList = rightItems;
+
+            this.$emit( "onChange", { leftItems, rightItems } );
+        },
+        moveAllRight: function() {
+            const rightItems = [
+                ...this.rightList,
+                ...this.leftList.filter( item => !item.hide ).map( item => ( { ...item, selected: false } ) )
+            ];
+            const leftItems = [
+                ...this.leftList.filter( item => item.hide ).map( item => ( { ...item, selected: false } ) )
+            ];
+
+            this.leftList = leftItems;
+            this.rightList = rightItems;
+
+            this.$emit( "onChange", { leftItems, rightItems } );
+        },
+        moveAllLeft() {
+            const leftItems = [
+                ...this.leftList,
+                ...this.rightList.filter( item => !item.hide ).map( item => ( { ...item, selected: false } ) )
+            ];
+            const rightItems = [
+                ...this.rightList.filter( item => item.hide ).map( item => ( { ...item, selected: false } ) ),
+            ];
+
+            this.leftList = leftItems;
+            this.rightList = rightItems;
+
+            this.$emit( "onChange", { leftItems, rightItems } );
+        },
+        selectItemsOfRight( key ) {
+            this.rightList.forEach( ( i, k ) => {
+                if( k === key )
+                    i.selected = !i.selected;
+            } );
+            this.$emit( "onChange", { leftItems: [ ...this.leftList ], rightItems: [ ...this.rightList ] } );
+        },
+        selectItemsOfLeft( key ) {
+            this.leftList.forEach( ( i, k ) => {
+                if( k === key ) {
+                    i.selected = !i.selected;
+                }
+            } );
+            this.$emit( "onChange", { leftItems: [ ...this.leftList ], rightItems: [ ...this.rightList ] } );
+        },
+        selectAllOfLeft() {
+            this.leftList.forEach( item => {
+                if( !item.hide )
+                    item.selected = true;
+            } );
+            this.$emit( "onChange", { leftItems: [ ...this.leftList ], rightItems: [ ...this.rightList ] } );
+        },
+        unselectAllOfLeft() {
+            this.leftList.forEach( item => item.selected = false );
+            this.$emit( "onChange", { leftItems: [ ...this.leftList ], rightItems: [ ...this.rightList ] } );
+        },
+        selectAllOfRight() {
+            this.rightList.forEach( item => {
+                if( !item.hide )
+                    item.selected = true;
+            } );
+            this.$emit( "onChange", { leftItems: [ ...this.leftList ], rightItems: [ ...this.rightList ] } );
+        },
+        unselectAllOfRight() {
+            this.rightList.forEach( item => item.selected = false );
+            this.$emit( "onChange", { leftItems: [ ...this.leftList ], rightItems: [ ...this.rightList ] } );
+        },
+        leftSearchEvent( { clear } ) {
+            const search = clear ? null : this.$refs.leftSearch.lazyValue;
+            let leftItems = this.leftList.map( i => {
+                if( search )
+                    i.hide = this.searchHeader.filter( x => i[x].indexOf( search ) > -1 ).length === 0
+                else
+                    i.hide = false;
+                i.selected = false;
+                return i;
+            } );
+            this.$emit( "onChange", { leftItems, rightItems: [ ...this.rightList ] } );
+        },
+        rightSearchEvent( { clear } ) {
+            const search = clear ? null : this.$refs.rightSearch.lazyValue;
+            let rightItems = this.rightList.map( i => {
+                if( search )
+                    i.hide = this.searchHeader.filter( x => i[x].indexOf( search ) > -1 ).length === 0
+                else
+                    i.hide = false;
+                i.selected = false;
+                return i;
+            } );
+            this.$emit( "onChange", { leftItems: [ ...this.leftItems ], rightItems } );
+        },
+        getLeftList() {
+            this.$emit( "getLeftItems", [ ...this.leftList ] );
+        },
+        getRightList() {
+            this.$emit( "getRightItems", [ ...this.rightList ] );
+        },
+        getLeftSelectedList() {
+            const leftItems = this.leftList.filter( x => x.selected );
+            this.$emit( "getSelectedLeftItems", leftItems );
+        },
+        getRightSelectedList() {
+            const rightItems = this.rightList.filter( x => x.selected );
+            this.$emit( "getSelectedLeftItems", rightItems );
+        }
+    },
 }
 </script>
 
