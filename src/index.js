@@ -1,17 +1,4 @@
-import TheDualList from "@/components/TheDualList";
+import component from './components/TheDualList';
 
-const components = {
-    TheDualList
-}
-
-export { TheDualList };
-
-export const Plugin = {
-    install: (Vue) => {
-        components.forEach( component => {
-            Vue.component( component.name, component );
-        } );
-    }
-}
-
-export default { Plugin, TheDualList };
+// To allow use as module( npm / webpack / etc. ) export component
+export default component;

@@ -1,15 +1,20 @@
 {
   "name": "jokey-duallist",
   "version": "0.1.0",
-  "private": true,
+  "author": {
+    "name": "Yeonik Jo"
+  },
+  "private": false,
   "scripts": {
     "serve": "vue-cli-service serve",
-    "build": "vue-cli-service build",
+    "build": "vue-cli-service build --target lib --name jokey-duallist src/index.js",
     "lint": "vue-cli-service lint"
   },
   "dependencies": {
     "@mdi/font": "^5.9.55",
+    "bootstrap-vue": "^2.21.2",
     "core-js": "^3.6.5",
+    "sortablejs": "^1.13.0",
     "vue": "^2.6.11",
     "vuedraggable": "^2.24.3",
     "vuescroll": "^4.17.3",

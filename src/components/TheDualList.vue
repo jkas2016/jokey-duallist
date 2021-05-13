@@ -44,21 +44,25 @@
                     </v-col>
                 </slot>
             </v-row>
-            <ul class="list-box" :style="listBoxHeight">
+            <ul class="list-box" :style="{ height: listBoxHeight }">
+                <li
+                    class="list-item"
+                    v-show="leftList.length < 1"
+                >
+                    <v-row no-gutters>
+                        <v-col cols="12" style="text-align: center;">
+                            {{ noDataTextLabel }}
+                        </v-col>
+                    </v-row>
+                </li>
                 <the-spinner :loading="loading" is-absolute-container></the-spinner>
                 <vue-scroll :ops="ops">
-                    <draggable
-                        :disabled="dragDisabled"
-                        :list="leftItems"
-                    >
-                        <!--@change="changeLog"-->
+                    <transition-group ref="leftList" id="leftList" tag="div" type="transition" :style="{ 'min-height': listBoxHeight }">
                         <li
                             class="list-item"
                             v-for="(item,key) in leftItems"
                             :key="key"
-                            :style="{backgroundColor: item.selected ? '#eeeeee':''}"
                             v-show="!item.hide"
-                            @click="selectItemsOfLeft(key)"
                         >
                             <slot
                                 name="list-item"
@@ -76,17 +80,7 @@
                                 </v-row>
                             </slot>
                         </li>
-                        <li
-                            class="list-item"
-                            v-show="leftItems.length < 1"
-                        >
-                            <v-row no-gutters>
-                                <v-col cols="12" style="text-align: center;">
-                                    {{ noDataTextLabel }}
-                                </v-col>
-                            </v-row>
-                        </li>
-                    </draggable>
+                    </transition-group>
                 </vue-scroll>
             </ul>
             <v-row no-gutters>
@@ -194,43 +188,43 @@
                     </v-col>
                 </slot>
             </v-row>
-            <ul class="list-group-flush border rounded list-box" :style="listBoxHeight">
+            <ul class="list-group-flush border rounded list-box" :style="{ height: listBoxHeight }">
+                <li
+                    class="list-item"
+                    v-show="rightList.length < 1"
+                >
+                    <v-row no-gutters>
+                        <v-col cols="12" style="text-align: center;">
+                            {{ noDataTextLabel }}
+                        </v-col>
+                    </v-row>
+                </li>
                 <the-spinner :loading="loading" is-absolute-container></the-spinner>
                 <vue-scroll :ops="ops">
-                    <li
-                        class="list-item"
-                        v-for="(item,key) in rightItems"
-                        :key="key"
-                        :style="{ backgroundColor: item.selected ? '#f5f5f5':'' }"
-                        v-show="!item.hide"
-                        @click="selectItemsOfRight(key)"
-                    >
-                        <slot
-                            name="list-item"
-                            :headers="headers"
-                            :item="item"
+                    <transition-group ref="rightList" id="rightList" tag="div" type="transition" :style="{ 'min-height': listBoxHeight }">
+                        <li
+                            class="list-item"
+                            v-for="(item,key) in rightItems"
+                            :key="key"
+                            v-show="!item.hide"
                         >
-                            <v-row no-gutters>
-                                <v-col
-                                    v-for="( x, i ) in headers"
-                                    :key="i"
-                                    :cols="12/headers.length"
-                                >
-                                    {{ item[x.value] }}
-                                </v-col>
-                            </v-row>
-                        </slot>
-                    </li>
-                    <li
-                        class="list-item"
-                        v-show="rightItems.length < 1"
-                    >
-                        <v-row no-gutters>
-                            <v-col cols="12" style="text-align: center;">
-                                {{ noDataTextLabel }}
-                            </v-col>
-                        </v-row>
-                    </li>
+                            <slot
+                                name="list-item"
+                                :headers="headers"
+                                :item="item"
+                            >
+                                <v-row no-gutters>
+                                    <v-col
+                                        v-for="( x, i ) in headers"
+                                        :key="i"
+                                        :cols="12/headers.length"
+                                    >
+                                        {{ item[x.value] }}
+                                    </v-col>
+                                </v-row>
+                            </slot>
+                        </li>
+                    </transition-group>
                 </vue-scroll>
             </ul>
             <v-row no-gutters>
@@ -263,9 +257,10 @@
 
 <script>
 import vueScroll from 'vuescroll';
-import draggable from 'vuedraggable';
 import TheSpinner from "./TheSpinner";
 import TableComponent from "./table-component";
+import { Sortable } from 'sortablejs';
+// import draggable from 'vuedraggable'
 
 /**
  * dual list component
@@ -273,20 +268,23 @@ import TableComponent from "./table-component";
  */
 export default {
     name      : "TheDualList",
-    components: { TheSpinner, vueScroll, draggable },
+    components: { TheSpinner, vueScroll },
     mixins    : [ TableComponent ],
     props     : {
         leftItems        : Array,
         rightItems       : Array,
         searchPlaceholder: String,
-        /** table header (left == right) */
+        /**
+         * table header (left == right)
+         * @type {{type: ArrayConstructor, required: boolean}}
+         */
         headers: {
             type    : Array,
             required: true
         },
         /**
          * Header key to include in search function
-         * @type [String Array]
+         * @type {ArrayConstructor}
          */
         searchHeader: Array,
         dragDisabled: {
@@ -306,62 +304,102 @@ export default {
     },
     data() {
         return {
-            ops      : {
+            ops            : {
                 vuescroll  : {},
                 scrollPanel: {},
                 rail       : {},
                 bar        : {}
             },
-            leftList : null,
-            rightList: null,
+            leftList       : null,
+            rightList      : null,
+            draggableOption: {
+                group    : "dual",
+                disabled : this.dragDisabled,
+                animation: 200,
+                multiDrag: true,
+                // Class name for selected item
+                selectedClass: "sortable-selected",
+
+                onEnd   : ( evt ) => {
+                    evt.items.forEach( el => Sortable.utils.deselect( el ) );
+                },
+                onAdd   : ( { from, to, oldIndex, newIndex, oldIndicies, newIndicies } ) => {
+                    this.moveItems(
+                        from.id,
+                        to.id,
+                        oldIndicies.length > 0 ? oldIndicies.map( x => x.index ) : [ oldIndex ],
+                        newIndicies.length > 0 ? newIndicies[0].index : [ newIndex ]
+                    );
+                },
+                onUpdate: ( { target, oldIndicies, newIndicies } ) => {
+                    this.updateItems( target.id, oldIndicies.map( x => x.index ), newIndicies[0].index );
+                },
+                onSelect: ( evt ) => {
+                    console.log( evt );
+                }
+            },
         }
     },
     computed: {
-        // Data area length
+        /**
+         * Data area length
+         * @return {String|string}
+         */
         listBoxHeight() {
             return this.height ?
                 this.leftItems.length > 0 || this.rightItems.length > 0 ?
-                    { height: this.height } : { height: "30px" }
-                : null;
+                    this.height : "30px"
+                : "250px";
         },
         noDataTextLabel() {
             return this.noDataText ? this.noDataText : "No data"
         },
-        // Total number of data in the source area
         leftItemsAllCnt() {
             return this.leftList ? this.leftList.filter( item => !item.hide ).length : 0;
         },
-        // 원본 영역 선택 데이터 개수
         leftItemsSelectCnt() {
             return this.leftList ? this.leftList.filter( item => item.selected ).length : 0;
         },
-        // 선택 영역 전체 데이터 개수
         rightItemsAllCnt() {
             return this.rightList ? this.rightList.filter( item => !item.hide ).length : 0;
         },
-        // 선택 영역 선택 데이터 개수
         rightItemsSelectCnt() {
             return this.rightList ? this.rightList.filter( item => item.selected ).length : 0;
         },
     },
     watch   : {
         leftItems( to ) {
-            this.leftList = to;
+            this.leftList = [ ...to ];
         },
         rightItems( to ) {
-            this.rightList = to;
+            this.rightList = [ ...to ];
         }
     },
-    methods : {
+    created() {
+        this.leftList = [ ...this.leftItems ];
+        this.rightList = [ ...this.rightItems ];
+    },
+    mounted() {
+        this.$nextTick( () => {
+            new Sortable( this.$refs.leftList.$el, this.draggableOption );
+            new Sortable( this.$refs.rightList.$el, this.draggableOption );
+        } );
+    },
+    methods: {
+        moveItems( from, to, oldIndexes, newIndex ) {
+            const selected = this[from].filter( ( x, i ) => oldIndexes.indexOf( i ) > -1 );
+            this[from] = this[from].filter( ( x, i ) => oldIndexes.indexOf( i ) === -1 );
+            this[to].splice( newIndex, 0, ...selected );
+            this.changeList();
+        },
+        updateItems( target, oldIndexes, newIndex ) {
+            const selected = this[target].filter( ( x, i ) => oldIndexes.indexOf( i ) > -1 );
+            this[target] = this[target].filter( ( x, i ) => oldIndexes.indexOf( i ) === -1 );
+            this[target].splice( newIndex, 0, ...selected );
+            this.changeList();
+        },
         moveRight() {
-            const selected = this.leftList.filter( f => f.selected ).map( item => ( { ...item, selected: false } ) );
-            const rightItems = [ ...this.rightList, ...selected ];
-            const leftItems = this.leftList.filter( f => !f.selected );
 
-            this.leftList = leftItems;
-            this.rightList = rightItems;
-
-            this.$emit( "onChange", { leftItems, rightItems } );
         },
         moveLeft() {
             const selected = this.rightList.filter( f => f.selected ).map( item => ( { ...item, selected: false } ) );
@@ -402,41 +440,33 @@ export default {
             this.$emit( "onChange", { leftItems, rightItems } );
         },
         selectItemsOfRight( key ) {
-            this.rightList.forEach( ( i, k ) => {
+            this.rightList = this.rightList.map( ( i, k ) => {
                 if( k === key )
                     i.selected = !i.selected;
+                return i;
             } );
             this.$emit( "onChange", { leftItems: [ ...this.leftList ], rightItems: [ ...this.rightList ] } );
         },
         selectItemsOfLeft( key ) {
-            this.leftList.forEach( ( i, k ) => {
+            this.leftList = this.leftList.map( ( i, k ) => {
                 if( k === key ) {
                     i.selected = !i.selected;
                 }
+                return i;
             } );
             this.$emit( "onChange", { leftItems: [ ...this.leftList ], rightItems: [ ...this.rightList ] } );
         },
         selectAllOfLeft() {
-            this.leftList.forEach( item => {
-                if( !item.hide )
-                    item.selected = true;
-            } );
-            this.$emit( "onChange", { leftItems: [ ...this.leftList ], rightItems: [ ...this.rightList ] } );
+            this.$refs.leftList.$el.children.forEach( el => Sortable.utils.select( el ) )
         },
         unselectAllOfLeft() {
-            this.leftList.forEach( item => item.selected = false );
-            this.$emit( "onChange", { leftItems: [ ...this.leftList ], rightItems: [ ...this.rightList ] } );
+            this.$refs.leftList.$el.children.forEach( el => Sortable.utils.deselect( el ) )
         },
         selectAllOfRight() {
-            this.rightList.forEach( item => {
-                if( !item.hide )
-                    item.selected = true;
-            } );
-            this.$emit( "onChange", { leftItems: [ ...this.leftList ], rightItems: [ ...this.rightList ] } );
+            this.$refs.rightList.$el.children.forEach( el => Sortable.utils.select( el ) )
         },
         unselectAllOfRight() {
-            this.rightList.forEach( item => item.selected = false );
-            this.$emit( "onChange", { leftItems: [ ...this.leftList ], rightItems: [ ...this.rightList ] } );
+            this.$refs.rightList.$el.children.forEach( el => Sortable.utils.deselect( el ) )
         },
         leftSearchEvent( { clear } ) {
             const search = clear ? null : this.$refs.leftSearch.lazyValue;
@@ -474,8 +504,12 @@ export default {
         },
         getRightSelectedList() {
             const rightItems = this.rightList.filter( x => x.selected );
-            this.$emit( "getSelectedLeftItems", rightItems );
-        }
+            this.$emit( "getSelectedRightItems", rightItems );
+        },
+        changeList() {
+            console.log( this.leftList.map( x => x.test ), this.rightList.map( x => x.test ) );
+            this.$emit( "onChange", { leftItems: [ ...this.leftList ], rightItems: [ ...this.rightList ] } );
+        },
     },
 }
 </script>
@@ -518,8 +552,14 @@ export default {
     }
   }
 
+  .list-box-header {
+    background-color: #464b55;
+    color: white;
+    border: thin solid #767785;
+    padding: 0 1rem;
+  }
+
   .list-box {
-    height: 250px;
     overflow: auto;
     list-style: none;
     padding: 0;
@@ -533,10 +573,6 @@ export default {
       border-bottom: solid 1px #cccccc;
       cursor: pointer;
 
-      &:last-child {
-        border: none;
-      }
-
       input {
         border: 1px solid;
         border-radius: 5px;
@@ -544,6 +580,11 @@ export default {
         text-align: center;
       }
     }
+
+    .sortable-selected {
+      background-color: #eeeeee
+    }
+
   }
 }
 
@@ -565,9 +606,7 @@ export default {
   border-radius: 0.25rem;
   transition: color 0.15s ease-in-out, background-color 0.15s ease-in-out,
   border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
-  display: block;
   width: 100%;
-  color: #fff;
   cursor: pointer;
 
   img {
@@ -580,10 +619,8 @@ export default {
   border-color: #6c757d;
 }
 
-.list-box-header {
-  background-color: #464b55;
-  color: white;
-  border: thin solid #767785;
-  padding: 0 1rem;
+.flip-list-move {
+  transition: transform 0.5s;
 }
+
 </style>
