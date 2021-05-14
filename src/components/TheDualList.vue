@@ -110,38 +110,8 @@
         <!--\\원본역역-->
         <!--버튼영역-->
         <div class="actions">
-            <v-btn
-                icon
-                class="btn-action"
-                color="normal"
-                @click="moveRight"
-            >
-                <v-icon>mdi-chevron-right</v-icon>
-            </v-btn>
-            <v-btn
-                icon
-                class="btn-action"
-                color="normal"
-                @click="moveAllRight"
-            >
-                <v-icon>mdi-chevron-double-right</v-icon>
-            </v-btn>
-            <v-btn
-                icon
-                class="btn-action"
-                color="normal"
-                @click="moveLeft"
-            >
-                <v-icon>mdi-chevron-left</v-icon>
-            </v-btn>
-            <v-btn
-                icon
-                class="btn-action"
-                color="normal"
-                @click="moveAllLeft"
-            >
-                <v-icon>mdi-chevron-double-left</v-icon>
-            </v-btn>
+            <v-icon>mdi-chevron-right</v-icon>
+            <v-icon>mdi-chevron-left</v-icon>
         </div>
         <!--\\버튼영역-->
         <!--선택영역-->
@@ -260,7 +230,6 @@ import vueScroll from 'vuescroll';
 import TheSpinner from "./TheSpinner";
 import TableComponent from "./table-component";
 import { Sortable } from 'sortablejs';
-// import draggable from 'vuedraggable'
 
 /**
  * dual list component
@@ -320,10 +289,10 @@ export default {
                 // Class name for selected item
                 selectedClass: "sortable-selected",
 
-                onEnd   : ( evt ) => {
+                onEnd     : ( evt ) => {
                     evt.items.forEach( el => Sortable.utils.deselect( el ) );
                 },
-                onAdd   : ( { from, to, oldIndex, newIndex, oldIndicies, newIndicies } ) => {
+                onAdd     : ( { from, to, oldIndex, newIndex, oldIndicies, newIndicies } ) => {
                     this.moveItems(
                         from.id,
                         to.id,
@@ -331,11 +300,14 @@ export default {
                         newIndicies.length > 0 ? newIndicies[0].index : [ newIndex ]
                     );
                 },
-                onUpdate: ( { target, oldIndicies, newIndicies } ) => {
+                onUpdate  : ( { target, oldIndicies, newIndicies } ) => {
                     this.updateItems( target.id, oldIndicies.map( x => x.index ), newIndicies[0].index );
                 },
-                onSelect: ( evt ) => {
-                    console.log( evt );
+                onSelect  : ( { target, newIndicies } ) => {
+                    this.selectItem( target.id, newIndicies.map( x => x.index ) );
+                },
+                onDeselect: ( { target, newIndicies } ) => {
+                    this.selectItem( target.id, newIndicies.map( x => x.index ) );
                 }
             },
         }
@@ -386,111 +358,91 @@ export default {
         } );
     },
     methods: {
+        /**
+         * Drag multiple items to different area
+         * @param from
+         * @param to
+         * @param oldIndexes
+         * @param newIndex
+         */
         moveItems( from, to, oldIndexes, newIndex ) {
             const selected = this[from].filter( ( x, i ) => oldIndexes.indexOf( i ) > -1 );
             this[from] = this[from].filter( ( x, i ) => oldIndexes.indexOf( i ) === -1 );
             this[to].splice( newIndex, 0, ...selected );
             this.changeList();
         },
+        /**
+         * Drag multiple items in area
+         * @param target
+         * @param oldIndexes
+         * @param newIndex
+         */
         updateItems( target, oldIndexes, newIndex ) {
             const selected = this[target].filter( ( x, i ) => oldIndexes.indexOf( i ) > -1 );
             this[target] = this[target].filter( ( x, i ) => oldIndexes.indexOf( i ) === -1 );
             this[target].splice( newIndex, 0, ...selected );
             this.changeList();
         },
-        moveRight() {
-
-        },
-        moveLeft() {
-            const selected = this.rightList.filter( f => f.selected ).map( item => ( { ...item, selected: false } ) );
-            const leftItems = [ ...this.leftList, ...selected ];
-            const rightItems = this.rightList.filter( f => !f.selected );
-
-            this.leftList = leftItems;
-            this.rightList = rightItems;
-
-            this.$emit( "onChange", { leftItems, rightItems } );
-        },
-        moveAllRight: function() {
-            const rightItems = [
-                ...this.rightList,
-                ...this.leftList.filter( item => !item.hide ).map( item => ( { ...item, selected: false } ) )
-            ];
-            const leftItems = [
-                ...this.leftList.filter( item => item.hide ).map( item => ( { ...item, selected: false } ) )
-            ];
-
-            this.leftList = leftItems;
-            this.rightList = rightItems;
-
-            this.$emit( "onChange", { leftItems, rightItems } );
-        },
-        moveAllLeft() {
-            const leftItems = [
-                ...this.leftList,
-                ...this.rightList.filter( item => !item.hide ).map( item => ( { ...item, selected: false } ) )
-            ];
-            const rightItems = [
-                ...this.rightList.filter( item => item.hide ).map( item => ( { ...item, selected: false } ) ),
-            ];
-
-            this.leftList = leftItems;
-            this.rightList = rightItems;
-
-            this.$emit( "onChange", { leftItems, rightItems } );
-        },
-        selectItemsOfRight( key ) {
-            this.rightList = this.rightList.map( ( i, k ) => {
-                if( k === key )
-                    i.selected = !i.selected;
-                return i;
+        /**
+         * item click
+         * @param target
+         * @param indexes
+         */
+        selectItem( target, indexes ) {
+            this[target] = this[target].map( ( x, i ) => {
+                x.selected = indexes.indexOf( i ) > -1;
+                return x;
             } );
-            this.$emit( "onChange", { leftItems: [ ...this.leftList ], rightItems: [ ...this.rightList ] } );
         },
-        selectItemsOfLeft( key ) {
-            this.leftList = this.leftList.map( ( i, k ) => {
-                if( k === key ) {
-                    i.selected = !i.selected;
-                }
-                return i;
-            } );
-            this.$emit( "onChange", { leftItems: [ ...this.leftList ], rightItems: [ ...this.rightList ] } );
-        },
+        /**
+         * Select all visible items of left area
+         */
         selectAllOfLeft() {
-            this.$refs.leftList.$el.children.forEach( el => Sortable.utils.select( el ) )
+            this.$refs.leftList.$el.children
+                .forEach( el => {
+                    if( el.classList.value.indexOf( "sortable-hide" ) === -1 ) Sortable.utils.select( el )
+                } );
         },
+        /**
+         * Unselect all visible items of left area
+         */
         unselectAllOfLeft() {
-            this.$refs.leftList.$el.children.forEach( el => Sortable.utils.deselect( el ) )
+            this.$refs.leftList.$el.children.forEach( el => Sortable.utils.deselect( el ) );
         },
+        /**
+         * Select all visible items of right area
+         */
         selectAllOfRight() {
-            this.$refs.rightList.$el.children.forEach( el => Sortable.utils.select( el ) )
+            this.$refs.rightList.$el.children
+                .forEach( el => {
+                    if( el.classList.value.indexOf( "sortable-hide" ) === -1 ) Sortable.utils.select( el )
+                } );
         },
+        /**
+         * Unselect all visible items of right area
+         */
         unselectAllOfRight() {
-            this.$refs.rightList.$el.children.forEach( el => Sortable.utils.deselect( el ) )
+            this.$refs.rightList.$el.children.forEach( el => Sortable.utils.deselect( el ) );
         },
         leftSearchEvent( { clear } ) {
             const search = clear ? null : this.$refs.leftSearch.lazyValue;
-            let leftItems = this.leftList.map( i => {
-                if( search )
-                    i.hide = this.searchHeader.filter( x => i[x].indexOf( search ) > -1 ).length === 0
-                else
-                    i.hide = false;
-                i.selected = false;
-                return i;
+
+            // sortable-hide class add or remove
+            this.$refs.leftList.$el.children.forEach( el => {
+                if( !search || el.innerText.indexOf( search ) > -1 )
+                    el.classList.value = el.classList.value.replaceAll( " sortable-hide", "" );
+                else el.classList.value = el.classList.value + " sortable-hide";
             } );
-            this.$emit( "onChange", { leftItems, rightItems: [ ...this.rightList ] } );
         },
         rightSearchEvent( { clear } ) {
             const search = clear ? null : this.$refs.rightSearch.lazyValue;
-            let rightItems = this.rightList.map( i => {
-                if( search )
-                    i.hide = this.searchHeader.filter( x => i[x].indexOf( search ) > -1 ).length === 0
-                else
-                    i.hide = false;
-                i.selected = false;
-                return i;
+
+            // sortable-hide class add or remove
+            this.$refs.rightList.$el.children.forEach( el => {
+                if( !search || el.innerText.indexOf( search ) > -1 )
+                    el.classList.value = el.classList.value.replaceAll( " sortable-hide", "" );
+                else el.classList.value = el.classList.value + " sortable-hide";
             } );
-            this.$emit( "onChange", { leftItems: [ ...this.leftItems ], rightItems } );
         },
         getLeftList() {
             this.$emit( "getLeftItems", [ ...this.leftList ] );
@@ -498,16 +450,7 @@ export default {
         getRightList() {
             this.$emit( "getRightItems", [ ...this.rightList ] );
         },
-        getLeftSelectedList() {
-            const leftItems = this.leftList.filter( x => x.selected );
-            this.$emit( "getSelectedLeftItems", leftItems );
-        },
-        getRightSelectedList() {
-            const rightItems = this.rightList.filter( x => x.selected );
-            this.$emit( "getSelectedRightItems", rightItems );
-        },
         changeList() {
-            console.log( this.leftList.map( x => x.test ), this.rightList.map( x => x.test ) );
             this.$emit( "onChange", { leftItems: [ ...this.leftList ], rightItems: [ ...this.rightList ] } );
         },
     },
@@ -583,6 +526,10 @@ export default {
 
     .sortable-selected {
       background-color: #eeeeee
+    }
+
+    .sortable-hide {
+      display: none;
     }
 
   }
