@@ -1,7 +1,8 @@
 # jokey-duallist
 
 ## installed
-please pre-installed [vuetify](https://vuetifyjs.com/en/getting-started/installation/) & [icon](https://materialdesignicons.com/)
+
+Please install [vuetify](https://vuetifyjs.com/en/getting-started/installation/) & [icon](https://materialdesignicons.com/) first before installation
 ```commandline
 yarn add vuetify
 yarn add jokey-duallist
@@ -19,7 +20,7 @@ component props
 ```javascript
 {
     /**
-     * left area item
+     * Left area item list
      * @example [
      *      { "test1": "a", "test2": "1" },
      *      ...
@@ -27,10 +28,10 @@ component props
      */
     leftItems: Array,
         
-    /** same to left-items */
+    /** same as lift-items */
     rightItems: Array,
         
-    /** placeholder in searching input */
+    /** Placeholder of search input tag */
     searchPlaceholder: String,
         
     /**
@@ -73,6 +74,7 @@ component props
 emit events
 
 ```javascript
+// Called whenever a change event occurs (except for selection events)
 this.$emit( "onChange", { leftItems: any[], rightItems: any[] } );
 ```
 
