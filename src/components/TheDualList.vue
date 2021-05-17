@@ -240,31 +240,43 @@ export default {
     components: { TheSpinner, vueScroll },
     mixins    : [ TableComponent ],
     props     : {
-        leftItems        : Array,
-        rightItems       : Array,
+        /**
+         * left area item
+         * @example [
+         *      { "test1": "a", "test2": "1" },
+         *      ...
+         * ]
+         */
+        leftItems: Array,
+        /** same to left-items */
+        rightItems: Array,
+        /** placeholder in searching input */
         searchPlaceholder: String,
         /**
          * table header (left == right)
          * @type {{type: ArrayConstructor, required: boolean}}
+         * @example [
+         *      { "text": "key1", "value": "test1" },
+         *      { "text": "key2", "value": "test2" },
+         *      ...
+         * ]
          */
         headers: {
             type    : Array,
             required: true
         },
-        /**
-         * Header key to include in search function
-         * @type {ArrayConstructor}
-         */
-        searchHeader: Array,
+        /** drag disabled */
         dragDisabled: {
             type   : Boolean,
             default: false
         },
-        loading     : {
+        /** loading spinner view flag */
+        loading: {
             type   : Boolean,
             default: false
         },
-        height      : {
+        /** left&right list box height */
+        height: {
             type    : String,
             required: false
         },
@@ -443,12 +455,6 @@ export default {
                     el.classList.value = el.classList.value.replaceAll( " sortable-hide", "" );
                 else el.classList.value = el.classList.value + " sortable-hide";
             } );
-        },
-        getLeftList() {
-            this.$emit( "getLeftItems", [ ...this.leftList ] );
-        },
-        getRightList() {
-            this.$emit( "getRightItems", [ ...this.rightList ] );
         },
         changeList() {
             this.$emit( "onChange", { leftItems: [ ...this.leftList ], rightItems: [ ...this.rightList ] } );
