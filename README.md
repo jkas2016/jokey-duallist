@@ -134,7 +134,9 @@ list box table body
 * [VueScroll.js](https://vuescrolljs.yvescoding.org/)
 
 ## version log
-* 1.1.0
+* 1.0.2
+    * README.md update
+* 1.0.1
     * import css
 * 1.0.0
     * first release
