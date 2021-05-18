@@ -1,5 +1,7 @@
 # jokey-duallist
 
+Drag & Drop dual list component based on Sortablejs
+
 ## installed
 
 Please install [vuetify](https://vuetifyjs.com/en/getting-started/installation/) & [icon](https://materialdesignicons.com/) first before installation

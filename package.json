@@ -1,12 +1,13 @@
 {
   "name": "jokey-duallist",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "author": {
     "name": "Yeonik Jo",
     "email": "whdusdlr2015@gmail.com"
   },
   "description": "dual list component based on Sortablejs",
   "keywords": [ "sortablejs", "dual", "vuetify", "multidrag" ],
+  "homepage": "https://github.com/jkas2016/jokey-duallist",
   "bugs": {
     "url": "https://github.com/jkas2016/jokey-duallist/issues",
     "email": "whdusdlr2015@gmail.com"
